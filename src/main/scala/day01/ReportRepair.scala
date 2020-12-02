@@ -1,4 +1,4 @@
-package day1
+package day01
 
 class ReportRepair {
   def find2Entries(inputs: List[String]): Long =
