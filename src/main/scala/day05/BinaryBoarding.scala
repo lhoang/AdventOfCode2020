@@ -19,9 +19,13 @@ object BinaryBoarding {
         else bisect(tail.mkString, (start + end) / 2 + 1, end, typeRC)
     }
 
+  def convert(s: String, typeRC: String): Int = {
+    Integer.parseInt(s.map(typeRC.indexOf(_)).mkString, 2)
+  }
+
   def findSeat(pass: String): Seat = {
-    val r = bisect(pass.take(7), 0, 127, row)
-    val c = bisect(pass.takeRight(3), 0, 7, column)
+    val r = convert(pass.take(7), row)
+    val c = convert(pass.takeRight(3), column)
     val id = r * 8 + c
     Seat(row = r, column = c, id = id)
   }

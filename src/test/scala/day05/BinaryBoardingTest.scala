@@ -14,6 +14,14 @@ class BinaryBoardingTest extends BaseTestSuite {
     bisect("RLL", 0, 7, column) shouldBe 4
   }
 
+  it should "bin to dec" in {
+    convert("FBFBBFF", row) shouldBe 44
+    convert("BFFFBBF", row) shouldBe 70
+    convert("FFFBBBF", row) shouldBe 14
+    convert("RLR", column) shouldBe 5
+    convert("RLL", column) shouldBe 4
+  }
+
   it should "find seat" in {
     findSeat("FBFBBFFRLR") shouldBe Seat(44, 5, 357)
     findSeat("BFFFBBFRRR") shouldBe Seat(70, 7, 567)
