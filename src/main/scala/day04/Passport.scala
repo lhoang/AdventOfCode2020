@@ -1,5 +1,7 @@
 package day04
 
+import utils.InputUtils.splitInput
+
 import scala.util.Try
 
 object Passport {
@@ -9,13 +11,11 @@ object Passport {
     "hcl", "ecl", "pid"
   )
 
-  def parseInput(input: List[String]): List[Map[String, String]] =
-    input.map(line => if (line.isEmpty) "@@@" else line)
-      .mkString(" ")
-      .split("@@@")
-      .toList
-      .map(_.trim)
+  def parseInput(input: List[String]): List[Map[String, String]] = {
+    splitInput(input)
+      .map(_.mkString(" "))
       .map(parsePassport)
+  }
 
   def parsePassport(line: String): Map[String, String] =
     line.split(" ")
