@@ -25,6 +25,8 @@ object RainRisk {
         case Instruction("R", v) => this.rotate(-v)
         case Instruction("F", v) => this.moveForward(v)
       }
+
+    def manhattanDistance(): Int
   }
 
   /**
@@ -36,19 +38,21 @@ object RainRisk {
    */
   case class Pos(x: Int, y: Int, angle: Int) extends Ship {
 
-    def moveX(value: Int): Pos = this.copy(x = this.x + value)
+    override def moveX(value: Int): Pos = this.copy(x = this.x + value)
 
-    def moveY(value: Int): Pos = this.copy(y = this.y + value)
+    override def moveY(value: Int): Pos = this.copy(y = this.y + value)
 
-    def moveForward(value: Int): Pos = {
+    override def moveForward(value: Int): Pos = {
       val dx = cos(angle.toRadians).round.toInt
       val dy = sin(angle.toRadians).round.toInt
       this.moveX(dx * value).moveY(dy * value)
     }
 
-    def rotate(value: Int): Pos = this.copy(angle = angle + value)
+    override def rotate(value: Int): Pos = this.copy(angle = angle + value)
 
     override def move(current: Instruction): Pos = super.move(current).asInstanceOf[Pos]
+
+    override def manhattanDistance(): Int = x.abs + y.abs
   }
 
   /**
@@ -60,25 +64,23 @@ object RainRisk {
    * @param dy waypoint South ->  North
    */
   case class WayPoint(x: Int, y: Int, dx: Int, dy: Int) extends Ship {
-    def moveX(value: Int): WayPoint = this.copy(dx = this.dx + value)
+    override def moveX(value: Int): WayPoint = this.copy(dx = this.dx + value)
 
-    def moveY(value: Int): WayPoint = this.copy(dy = this.dy + value)
+    override def moveY(value: Int): WayPoint = this.copy(dy = this.dy + value)
 
-    def rotate(value: Int): WayPoint =
-      if (Set(90, -270)(value))
-        this.copy(dx = -dy, dy = dx)
-      else if (Set(180, -180)(value))
-        this.copy(dx = -dx, dy = -dy)
-      else if (Set(270, -90)(value))
-        this.copy(dx = dy, dy = -dx)
-      else throw new IllegalArgumentException(s"Rotate: $value")
+    override def rotate(value: Int): WayPoint = {
+      val a = value.toRadians
+      this.copy(dx = (cos(a) * dx - sin(a) * dy).round.toInt,
+        dy = (sin(a) * dx + cos(a) * dy).round.toInt)
+    }
 
-    def moveForward(value: Int): WayPoint = {
+    override def moveForward(value: Int): WayPoint = {
       this.copy(x = this.x + dx * value, y = this.y + dy * value)
     }
 
     override def move(current: Instruction): WayPoint = super.move(current).asInstanceOf[WayPoint]
 
+    override def manhattanDistance(): Int = x.abs + y.abs
   }
 
   def parseInstructions(lines: List[String]): List[Instruction] = {
@@ -97,14 +99,9 @@ object RainRisk {
     instructions.foldLeft(WayPoint(0, 0, 10, 1))((wp, current) => wp.move(current))
   }
 
-  def computeFinaleManhattanDistance(input: List[String]): Int = {
-    val pos = moveShip(parseInstructions(input))
-    pos.x.abs + pos.y.abs
-  }
+  def computeFinaleManhattanDistance(input: List[String]): Int =
+    moveShip(parseInstructions(input)).manhattanDistance
 
-  def computeFinaleManhattanDistanceWayPoint(input: List[String]): Int = {
-    val wp = moveShipWayPoint(parseInstructions(input))
-    wp.x.abs + wp.y.abs
-  }
-
+  def computeFinaleManhattanDistanceWayPoint(input: List[String]): Int =
+    moveShipWayPoint(parseInstructions(input)).manhattanDistance
 }
