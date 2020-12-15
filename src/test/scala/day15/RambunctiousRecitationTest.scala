@@ -13,17 +13,22 @@ class RambunctiousRecitationTest extends BaseTestSuite {
   }
 
   it should "compute 2020th element (example)" in {
-    //generate(example, 2020).last shouldBe 436
-   // generate(List(1,3,2), 2020).last shouldBe 1
-    generate(List(3,1,2), 2020).last shouldBe 1836
+    generate3(example, 2020) shouldBe 436
+    //generate3(List(1,3,2), 2020) shouldBe 1
+    //generate3(List(3,1,2), 2020) shouldBe 1836
+    //generate3(List(3,1,2), 2020) shouldBe 1836
   }
 
   it should "compute 2020th element - part 1" in {
-    generate(List(18,11,9,0,5,1), 2020).last shouldBe 959
+    generate3(List(18,11,9,0,5,1), 2020) shouldBe 959
   }
 
   it should "compute 30e6th element (example)" in {
-    generate(example, 30000000).last shouldBe 175594
+    generate3(example, 30_000_000) shouldBe 175594
+  }
+
+  it should "compute 30e6th element - part 2" in {
+    generate3(List(18,11,9,0,5,1), 30_000_000) shouldBe 116590
   }
 
 }
