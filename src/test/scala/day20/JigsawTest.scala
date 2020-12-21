@@ -15,7 +15,6 @@ class JigsawTest extends BaseTestSuite {
   it should "parse tiles (part1)" in {
     val res = parseTiles(read("day20.txt"))
     res should have size 144
-    //stats(res)
   }
 
   it should "count neighbours" in {
@@ -95,7 +94,65 @@ class JigsawTest extends BaseTestSuite {
     res.map(_.map(_.id).mkString(", "))
       .foreach(println)
     val image = buildImage(res)
+    printImage(image)
 
-    image.foreach(println)
+    image.head shouldBe ".#.#..#.##...#.##..#####"
+    image(10) shouldBe "###.#.#...#.######.#..##"
+  }
+
+  it should "find sea monsters (example)" in {
+    val example =
+      """.####...#####..#...###..
+        |#####..#..#.#.####..#.#.
+        |.#.#...#.###...#.##.##..
+        |#.#.##.###.#.##.##.#####
+        |..##.###.####..#.####.##
+        |...#.#..##.##...#..#..##
+        |#.##.#..#.#..#..##.#.#..
+        |.###.##.....#...###.#...
+        |#.####.#.#....##.#..#.#.
+        |##...#..#....#..#...####
+        |..#.##...###..#.#####..#
+        |....#.##.#.#####....#...
+        |..##.##.###.....#.##..#.
+        |#...#...###..####....##.
+        |.#.##...#.##.#.#.###...#
+        |#.###.#..####...##..#...
+        |#.###...#.##...#.######.
+        |.###.###.#######..#####.
+        |..##.#..#..#.#######.###
+        |#.#..##.########..#..##.
+        |#.#####..#.#...##..#....
+        |#....##..#.#########..##
+        |#...#.....#..##...###.##
+        |#..###....##.#...##.##.#""".stripMargin.split("\n").toList
+    findSeaMonsters(example)._2 shouldBe List((2,2), (1, 16))
+
+    val tiles = parseTiles(read("day20_example.txt"))
+    val image = buildImage(placeTiles(tiles))
+    findSeaMonsters(image)._2 shouldBe List((2,2), (1, 16))
+  }
+
+  it should "identity sea monsters (example)" in {
+    val tiles = parseTiles(read("day20_example.txt"))
+    val image = buildImage(placeTiles(tiles))
+    val (finalImage, coords) = findSeaMonsters(image)
+    val seamonster = identifySeaMonsters(finalImage, coords)
+    printImage(seamonster)
+  }
+
+  it should "compute water roughness (example)" in {
+    val tiles = parseTiles(read("day20_example.txt"))
+    val (rotatedImage, coords) = findSeaMonsters(buildImage(placeTiles(tiles)))
+    val finalImage = identifySeaMonsters(rotatedImage, coords)
+    waterRoughness(finalImage) shouldBe 273
+  }
+
+  it should "compute water roughness - part 2" in {
+    val tiles = parseTiles(read("day20.txt"))
+    val (rotatedImage, coords) = findSeaMonsters(buildImage(placeTiles(tiles)))
+    val finalImage = identifySeaMonsters(rotatedImage, coords)
+    waterRoughness(finalImage) shouldBe 1665
+    printImage(finalImage)
   }
 }
