@@ -1,76 +1,59 @@
 package day21
 
+import scala.annotation.tailrec
+
 object Allergens {
 
-  type Line = (Seq[String], Seq[String])
+  case class Line(ingr: Seq[String],alg: Seq[String])
 
-  case class Culprit(name: String, allergen: String)
+  case class Culprit(name: Seq[String], allergen: String)
 
-  def identifyCulprit(alg: String, lines: List[Line]): Culprit = {
-    val found = lines.filter(_._2.contains(alg))
-      .flatMap(_._1)
+  def consolidateCulprits(culprits: Set[Culprit]): Set[Culprit]= {
 
-    val res = found.groupMapReduce(identity)(_ => 1)(_ + _)
-      .maxBy(_._2)
-    Culprit(res._1, alg)
+    @tailrec
+    def recConsolidate(current: Set[Culprit]): Set[Culprit] =
+      if (current.forall(_.name.size == 1))
+        current
+      else {
+        val (knownList, remaining) = current.partition(_.name.size == 1)
+        val knownIngr = knownList.flatMap(_.name)
+        recConsolidate(
+          knownList ++ remaining
+            .map(c => c.copy(name = c.name.filterNot(s => knownIngr(s))))
+        )
+      }
+
+    recConsolidate(culprits)
   }
-
-  def removeKnownCulprit(culprit: Culprit, lines: List[Line]): List[Line] = {
-    lines.map(line => {
-      val (ings, algs) = line
-      (ings.filterNot(_ == culprit.name), algs.filterNot(_ == culprit.allergen))
-    })
-  }
-
-  def removeKnownSafe(safe: String, lines: List[Line]): List[Line] = {
-    lines.map(line => {
-      val (ings, algs) = line
-      (ings.filterNot(_ == safe), algs)
-    })
-  }
-
 
   def parse(input: List[String]): List[Line] = {
     val line = """([\w ]+) \(contains ([\w, ]+)\)""".r
-    input.map {
-      case line(ingredients, allergens) =>
-        ingredients.split(" ").toList -> allergens.split(", ").toList
+    input.map { case line(ingredients, allergens) =>
+      Line(ingredients.split(" ").toSeq, allergens.split(", ").toSeq)
     }
   }
 
-  def findCulprits(lines:List[Line]): List[Culprit] = {
-    val nbCulprits = lines.flatMap(_._2).toSet.size
+  def findCulprits(lines:List[Line]): Set[Culprit]= {
+    val allergens = lines.flatMap(_.alg).toSet
 
-    def rec(remaining: List[Line],
-            culprits: List[Culprit]): List[Culprit] = {
-      if (culprits.size == nbCulprits)
-        culprits
-      else {
-        val (_, alg) = remaining.head
-        if (alg.isEmpty)
-          rec(remaining.tail, culprits)
-        else {
-          val currentAlg = alg.head
-          val culprit = identifyCulprit(currentAlg, remaining)
-          val cleaned = removeKnownCulprit(culprit, remaining)
-          rec(cleaned, culprit :: culprits)
-        }
-      }
-    }
-
-    rec(lines, List.empty[Culprit])
+    val suspects = allergens.map(alg => {
+      Culprit(name = lines.filter(_.alg.contains(alg))
+         .map(_.ingr)
+        .reduce((a, b) => a.intersect(b)),
+        allergen = alg)
+    })
+    consolidateCulprits(suspects)
   }
 
   def countSafeIngredients(lines: List[Line]):Int = {
-    val allIngredients = lines.flatMap(_._1).toSet
-    val culprits = findCulprits(lines).map(_.name).toSet
+    val allIngredients = lines.flatMap(_.ingr).toSet
+    val culprits = findCulprits(lines).map(_.name.head)
     val safe = allIngredients.filterNot(s => culprits(s))
-
-    lines.flatMap(_._1).count(s => safe(s))
+    lines.flatMap(_.ingr).count(s => safe(s))
   }
 
-  def canonicalCulprit(culprits: List[Culprit]): String =
-    culprits.sortBy(_.allergen)
-      .map(_.name)
+  def canonicalCulprit(culprits: Set[Culprit]): String =
+    culprits.toSeq.sortBy(_.allergen)
+      .map(_.name.head)
       .mkString(",")
 }
